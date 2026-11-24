@@ -1,0 +1,23 @@
+# Lingkungan virtual
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# RAHASIA - jangan pernah di-commit
+.env
+.env.*
+.streamlit/secrets.toml
+
+# Data pengguna (password tersimpan tanpa hash, jangan diunggah)
+users.json
+riwayat.json
+
+# Lain-lain
+*.log
+.DS_Store
+Thumbs.db
+.vscode
