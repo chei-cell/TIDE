@@ -1,0 +1,9 @@
+base = "dark"
+primaryColor = "#3F5AA6"
+backgroundColor = "#F4C2C2"
+secondaryBackground = "#FDF5DE"
+textColor = "#22304F"
+
+gatherUsageStats = false
+
+
