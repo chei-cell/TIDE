@@ -25,8 +25,16 @@ def angka(nilai) :
     return float(nilai)
 
 def minta_data (url, params) : 
-    resp = requests.get(url, params=params, timeout=10)
-    return resp.json()
+    try : 
+        resp = requests.get(url, params=params, timeout=10)
+    except requests.RequestException :
+        raise ValueError("Gagal terhubung ke internet. Coba cek koneksi lalu coba lagi ya :)"))
+    if resp.status_code != 200 :
+        raise ValueError(f"Server data cuaca menolak permintaan (kode{resp.status_code}).") 
+    try : 
+        return resp.json()
+    except ValueError :
+        raise ValueError("Jawaban server data cuaca sulit dibaca we:(") 
 
 def cari_lokasi (nama_kota) : 
     params = {"name" : nama_kota.strip(), "count" : 1, "language" : "id", "countryCode" : "ID"}
