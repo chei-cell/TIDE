@@ -17,7 +17,7 @@ for cat in hasil["catatan"]:
 if hasil["jadwal"]:
     st.dataframe(tabel_jadwal(hasil), hide_index=True, width="stretch")
     st.caption("Skor 0-100 = kecocokan cuaca, >= 70 Baik, 40-69 cukup, < 40 buruk). "
-               "Kegiatan dalam ruangan karena tidak berpengaruh jadi terkadang diletakkan pada jam yang cuacanya jelek.")
+               "Kegiatan dalam ruangan karena tidak berpengaruh jadi terkadang diletakkan pada jam yang cuacanya buruk.")
 else:
     st.error("Kegiatan nya tidak ada!")
 for t in hasil["tidak_terjadwal"]:
