@@ -1,6 +1,11 @@
 import os
+from datetime import date, datetime
 
-import streamlit as st 
+import streamlit as st
+
+from cuaca import ambil_data
+from jadwal import cek_nama_kota, rangkai_hasil, teks_ke_menit
+
 
 NAMA_APP = "TIDE"
 TAGLINE = "Catch the right time, every day"
@@ -66,3 +71,15 @@ def butuh_hasil():
         st.page_link(HALAMAN_SUSUN, label="Ke Susun Jadwal", icon="🗓️")
         st.stop()
     return hasil
+
+def buat_jadwal(kota, tanggal, jam_mulai, jam_selesai, kegiatan):
+    kota = cek_nama_kota(kota)
+    lokasi, per_jam, harian = ambil_data(kota, tanggal, st.session_state.cache)
+    sekarang_menit = None
+    if tanggal == date.today():
+        now = datetime.now()
+        sekarang_menit = now.hour * 60 + now.minute
+    hasil = rangkai_hasil(st.session_state.pengguna, lokasi, tanggal, per_jam, harian,
+                          teks_ke_menit(jam_mulai), teks_ke_menit(jam_selesai), kegiatan, sekarang_menit)
+    return hasil
+

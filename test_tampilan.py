@@ -55,5 +55,29 @@ def test_qwen_mati_memberi_pesan_jelas():
     assert ai.server_lokal_siap() is False
 
 
+def buka_halaman(halaman, hasil=None):
+    from streamlit.testing.v1 import AppTest
+    app = AppTest.from_file("app.py").run(timeout=30)
+    app.session_state["pengguna"] = "tes_otomatis"
+    app.session_state["hasil"] = hasil
+    app.switch_page(halaman).run(timeout=60)
+    assert not app.exception, (halaman, app.exception)
+    return app
+
+
+def test_halaman_susun_jadwal():
+    app = buka_halaman("pages/susun_jadwal.py")
+    assert app.text_input[0].label == "Kota" and len(app.text_input) == 4     
+    app.number_input[0].set_value(5).run(timeout=30)
+    assert len(app.text_input) == 6                                          
+
+
+def test_halaman_hasil_jadwal():
+    hasil = contoh_hasil()
+    hasil["saran"], hasil["sumber"] = "Contoh saran.", "Tes"        
+    app = buka_halaman("pages/hasil_jadwal.py", hasil)
+    assert len(app.dataframe) == 1 and len(app.dataframe[0].value) == 3
+
+
 if __name__ == "__main__":
     print("Selesai. Gagal:", jalankan_tes(globals()))
