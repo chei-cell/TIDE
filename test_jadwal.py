@@ -84,5 +84,56 @@ def test_cari_rentang_kosong():
     assert cari_indeks([], "id", "b") == -1
 
 
+def test_urutkan_prioritas_lalu_durasi():
+    from jadwal import urutkan_kegiatan
+    daftar = [buat_kegiatan(1, "A", "Dalam ruangan", 30, "Rendah"),
+              buat_kegiatan(2, "B", "Dalam ruangan", 30, "Tinggi"),
+              buat_kegiatan(3, "C", "Dalam ruangan", 120, "Sedang"),
+              buat_kegiatan(4, "D", "Dalam ruangan", 60, "Tinggi"),
+              buat_kegiatan(5, "E", "Dalam ruangan", 30, "Tinggi")]
+    assert [k["nama"] for k in urutkan_kegiatan(daftar)] == ["D", "B", "E", "C", "A"]
+
+
+def test_jadwal_menghindari_hujan():
+    data = cuaca_contoh(jam_hujan=[13, 14, 15])
+    kegiatan = [buat_kegiatan(1, "Lari", "Luar ruangan", 60, "Tinggi"),
+                buat_kegiatan(2, "Belajar", "Dalam ruangan", 120, "Sedang"),
+                buat_kegiatan(3, "Ke pasar", "Luar ruangan", 45, "Sedang"),
+                buat_kegiatan(4, "Menjemur", "Luar ruangan", 90, "Rendah")]
+    jadwal, tidak = susun_jadwal(kegiatan, skor_semua_jenis(data), 7 * 60, 21 * 60)
+    assert len(jadwal) == 4 and tidak == []
+    for j in jadwal:
+        if j["jenis"] == "Luar ruangan":             
+            assert j["selesai_menit"] <= 13 * 60 or j["mulai_menit"] >= 16 * 60, j
+    belajar = [j for j in jadwal if j["nama"] == "Belajar"][0]
+    assert 13 * 60 <= belajar["mulai_menit"] < 16 * 60   
+    assert belajar["kategori"] == "aman (di dalam)"
+
+
+def test_jadwal_tidak_muat():
+    kegiatan = [buat_kegiatan(1, "Panjang", "Dalam ruangan", 180, "Rendah"),
+                buat_kegiatan(2, "Penting", "Dalam ruangan", 120, "Tinggi")]
+    jadwal, tidak = susun_jadwal(kegiatan, skor_semua_jenis(cuaca_contoh()), 8 * 60, 12 * 60)
+    assert [j["nama"] for j in jadwal] == ["Penting"]      
+    assert [t["nama"] for t in tidak] == ["Panjang"]
+
+
+def test_jam_sudah_lewat():
+    kegiatan = [buat_kegiatan(1, "Lari", "Luar ruangan", 60, "Tinggi"),
+                buat_kegiatan(2, "Rapat", "Dalam ruangan", 90, "Sedang")]
+    hasil = rangkai_hasil("Valine", LOKASI, date(2026, 11, 25), cuaca_contoh(), HARIAN,
+                          6 * 60, 20 * 60, kegiatan, sekarang_menit=10 * 60 + 5)
+    for j in hasil["jadwal"]:
+        assert j["mulai_menit"] >= 10 * 60 + 15           
+    assert hasil["catatan"]
+    harus_gagal(rangkai_hasil, "A", LOKASI, date(2026, 11, 25), cuaca_contoh(), HARIAN, 600, 660, kegiatan, 700)
+
+
+def test_tabel_jadwal():
+    from jadwal import tabel_jadwal
+    df = tabel_jadwal(contoh_hasil())
+    assert list(df.columns)[:3] == ["Jam", "Kegiatan", "Jenis"] and len(df) == 3
+
+
 if __name__ == "__main__":
     print("Selesai. Gagal:", jalankan_tes(globals()))
