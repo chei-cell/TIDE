@@ -83,5 +83,25 @@ def test_cache_dictionary():
         cuaca.cari_lokasi, cuaca.ambil_cuaca = asli_lokasi, asli_cuaca
     assert len(panggilan) == 2 and list(cache.keys()) == ["yogyakarta|2026-11-25", "yogyakarta|2026-11-26"]
 
+def test_cari_lokasi_indonesia_diutamakan():
+    desa = {"name": "Semarang", "admin1": "DI Yogyakarta", "country": "Indonesia", "feature_code": "PPL",
+            "latitude": -7.9, "longitude": 110.4}
+    kota = {"name": "Semarang", "admin1": "Jawa Tengah", "country": "Indonesia", "feature_code": "PPLA",
+            "population": 1288084, "latitude": -6.99, "longitude": 110.42}
+
+    def palsu(url, params):
+        if params.get("countryCode") == "ID":
+            return {"results": [desa, kota]}
+        return {}
+
+    asli = cuaca.minta_data
+    cuaca.minta_data = palsu
+    try:
+        assert cuaca.cari_lokasi("Semarang")["label"] == "Semarang, Jawa Tengah, Indonesia"
+        assert cuaca.cari_lokasi("Semarang, Yogyakarta")["provinsi"] == "DI Yogyakarta"
+        harus_gagal(cuaca.cari_lokasi, "Semarang, Bali")        # tidak ada Semarang di Bali
+    finally:
+        cuaca.minta_data = asli
+
 if __name__ == "__main__":
     print("Selesai. Gagal:", jalankan_tes(globals()))

@@ -1,4 +1,5 @@
 import requests
+from algoritma import quick_sort
 
 URL_KOTA = "https://geocoding-api.open-meteo.com/v1/search"
 URL_CUACA = "https://api.open-meteo.com/v1/forecast"
@@ -37,15 +38,64 @@ def minta_data (url, params) :
     except ValueError :
         raise ValueError("Jawaban server data cuaca sulit dibaca we:(") 
 
-def cari_lokasi (nama_kota) : 
-    params = {"name" : nama_kota.strip(), "count" : 1, "language" : "id", "countryCode" : "ID"}
-    hasil = minta_data(URL_KOTA, params).get("results") or []
-    if not hasil : 
-        raise ValueError(f"Kota '{nama_kota}' tidak ditemukan.")
-    h = hasil[0]
-    return {"nama": h.get("name", nama_kota), "provinsi" : h.get("admin1",""), "negara" : h.get("country", ""), 
-            "label": h.get("name", nama_kota) + ", " + h.get("admin1", ""),
-            "lat" : h["latitude"], "lon" : h["longitude"]}
+# def cari_lokasi (nama_kota) : 
+#     params = {"name" : nama_kota.strip(), "count" : 1, "language" : "id", "countryCode" : "ID"}
+#     hasil = minta_data(URL_KOTA, params).get("results") or []
+#     if not hasil : 
+#         raise ValueError(f"Kota '{nama_kota}' tidak ditemukan.")
+#     h = hasil[0]
+#     return {"nama": h.get("name", nama_kota), "provinsi" : h.get("admin1",""), "negara" : h.get("country", ""), 
+#             "label": h.get("name", nama_kota) + ", " + h.get("admin1", ""),
+#             "lat" : h["latitude"], "lon" : h["longitude"]}
+
+def label_lokasi(hasil_api):
+    bagian = [hasil_api.get("name", "")]
+    for kunci in ["admin1", "country"]:
+        if hasil_api.get(kunci) and hasil_api[kunci] not in bagian:
+            bagian.append(hasil_api[kunci])
+    return ", ".join(bagian)
+
+def cocok_filter(hasil_api, filter_teks):
+    tempat = " ".join([str(hasil_api.get(k, "")) for k in ["admin1", "admin2", "admin3", "country"]]).lower()
+    for f in filter_teks:
+        if f not in tempat:
+            return False
+    return True
+
+BOBOT_TEMPAT = {"PPLC": 5, "PPLA": 4, "PPLA2": 3, "PPLA3": 2, "PPL": 1}
+
+def nilai_prioritas(hasil_api, urutan):
+    bobot = BOBOT_TEMPAT.get(hasil_api.get("feature_code", ""), 0)
+    penduduk = hasil_api.get("population") or 0
+    return bobot * 1e10 + penduduk - urutan * 0.001
+
+def cari_lokasi(nama_kota) : 
+    bagian = [b.strip() for b in nama_kota.split(",") if b.strip()]
+    if not bagian:
+        raise ValueError("Nama kota masih kosong.")
+    nama = bagian[0]
+    filter_teks = [b.lower() for b in bagian[1:]]
+
+    daftar = []
+    for kode_negara in ["ID", None]:  
+        params = {"name": nama, "count": 10, "language": "id"}
+        if kode_negara:
+            params["countryCode"] = kode_negara
+        hasil = minta_data(URL_KOTA, params).get("results") or []
+        for i in range(len(hasil)):
+            h = hasil[i]
+            if cocok_filter(h, filter_teks):
+                daftar.append({"nama": h.get("name", nama), "provinsi": h.get("admin1", ""),
+                               "negara": h.get("country", ""), "label": label_lokasi(h),
+                               "lat": h["latitude"], "lon": h["longitude"],
+                               "prioritas": nilai_prioritas(h, i)})
+        if daftar:
+            break
+    if not daftar:
+        raise ValueError(f"Kota '{nama_kota}' tidak ditemukan. Coba ejaan lain atau tambahkan provinsi, "
+                         "misalnya 'Pati, Jawa Tengah'.")
+    return quick_sort(daftar, "prioritas")[0]
+
 
 def olah_per_jam(jam, pm25) : 
     per_jam = []
