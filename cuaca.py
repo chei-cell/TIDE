@@ -29,7 +29,7 @@ def minta_data (url, params) :
     try : 
         resp = requests.get(url, params=params, timeout=10)
     except requests.RequestException :
-        raise ValueError("Gagal terhubung ke internet. Coba cek koneksi lalu coba lagi ya :)"))
+        raise ValueError("Gagal terhubung ke internet. Coba cek koneksi lalu coba lagi ya :)")
     if resp.status_code != 200 :
         raise ValueError(f"Server data cuaca menolak permintaan (kode{resp.status_code}).") 
     try : 
@@ -103,7 +103,10 @@ def ambil_cuaca (lat, lon, tanggal) :
     return per_jam, harian
                      
 
-def ambil_data(kota, tanggal, cache) : 
-    lokasi = cari_lokasi(kota)
-    per_jam, harian = ambil_cuaca(lokasi["lat"], lokasi["lon"], tanggal)
-    return lokasi, per_jam, harian
+def ambil_data(kota, tanggal, cache) :
+    kunci = kota.strip().lower() + "|" + tanggal.isformat()
+    if kunci not in cache : 
+        lokasi = cari_lokasi(kota)
+        per_jam, harian = ambil_cuaca(lokasi["lat"], lokasi["lon"], tanggal)
+        cache[kunci] = (lokasi, per_jam, harian)
+    return cache[kunci]
