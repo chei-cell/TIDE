@@ -27,6 +27,16 @@ def keluar():
 
 
 def sidebar():
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"] * { font-weight: 700 !important; font-size: 18px !important; }
+        [data-testid="stSidebarLogo"] { height: 6rem !important; max-width: 100% !important; }
+[data-testid="stSidebarHeader"] { height: auto !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     with st.sidebar:
         if st.session_state.pengguna:
             st.markdown(f"👤 Masuk sebagai **{st.session_state.pengguna}**")
