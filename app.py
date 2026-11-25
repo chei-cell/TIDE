@@ -10,9 +10,9 @@ with kiri:
 with kanan:
     st.title(NAMA_APP)
     st.subheader(TAGLINE)
-    st.write("Tulis kegiatan yang ingin dilakukan hari ini, berapa lama, dan seberapa penting. "
-             "TIDE membaca cuaca per jam, lalu menyusun jam yang paling pas untuk setiap kegiatan "
-             "tanpa bentrok. AI menjelaskan jadwalnya dan siap menjawab pertanyaan tentang cuaca hari itu.")
+    st.write("Tulis kegiatan yang ingin dilakukan hari ini, berapa lama, dan seberapa prioritas kegiatan tersebut. "
+             "TIDE membaca cuaca per jam, dan akan menyusun jam yang paling pas untuk setiap kegiatan "
+             "AI menjelaskan jadwalnya dan siap menjawab pertanyaan tentang cuaca hari itu.")
 
 if st.session_state.pengguna:
     st.success(f"Halo, **{st.session_state.pengguna}**! Buka halaman lain lewat menu di sidebar.")

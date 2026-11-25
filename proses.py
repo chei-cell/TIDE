@@ -39,7 +39,6 @@ def sidebar():
 
 
 def siapkan_halaman(perlu_login=True):
-    """Dipanggil paling awal di setiap halaman."""
     st.set_page_config(page_title=NAMA_APP, page_icon=LOGO, layout="wide")
     siapkan_state()
     st.logo(LOGO, size="large")
@@ -51,7 +50,6 @@ def siapkan_halaman(perlu_login=True):
 
 
 def butuh_hasil():
-    """Ambil jadwal yang sedang dibuka. Jika belum ada, tampilkan petunjuk dan hentikan halaman."""
     hasil = st.session_state.hasil
     if hasil is None:
         st.info("Belum ada jadwal. Buat dulu di halaman **Susun Jadwal**, atau buka jadwal lama di **Riwayat**.")
