@@ -68,11 +68,6 @@ def buat_kegiatan(nomor, nama, jenis, durasi_menit, prioritas):
 
 
 def urutkan_kegiatan(daftar):
-    """QUICK SORT: prioritas tinggi dulu; jika sama, durasi lebih lama dulu; jika masih sama, urutan input.
-
-    Nilai urut = prioritas x 10000 + durasi (menit) - nomor/100.
-    Durasi paling lama 1440 menit (< 10000), jadi prioritas selalu menang atas durasi.
-    """
     data = []
     for k in daftar:
         salinan = dict(k)
@@ -82,7 +77,6 @@ def urutkan_kegiatan(daftar):
 
 
 def skor_per_slot(skor_jam):
-    """Ubah 24 skor per jam menjadi 96 skor per slot 15 menit (slot memakai skor jamnya)."""
     hasil = []
     for slot in range(SLOT_SEHARI):
         hasil.append(skor_jam[slot * MENIT_SLOT // 60])
@@ -90,7 +84,6 @@ def skor_per_slot(skor_jam):
 
 
 def tandai_slot(mulai_menit, selesai_menit):
-    """List True/False sepanjang 96 slot. True = slot di luar jam mulai-selesai (tidak boleh dipakai)."""
     mulai_slot = mulai_menit // MENIT_SLOT
     selesai_slot = selesai_menit // MENIT_SLOT
     terisi = []
@@ -99,7 +92,6 @@ def tandai_slot(mulai_menit, selesai_menit):
     return terisi
 
 def isi_jadwal(k, mulai, rata2):
-    """Satu baris jadwal (dictionary) untuk kegiatan k yang mulai pada menit 'mulai'."""
     selesai = mulai + k["durasi_menit"]
     skor = round(rata2, 1)
     kategori = label(skor)
@@ -112,14 +104,6 @@ def isi_jadwal(k, mulai, rata2):
 
 
 def susun_jadwal(kegiatan, skor_jenis, mulai_menit, selesai_menit):
-    """Susun jadwal tanpa bentrok.
-
-    kegiatan   : list of dictionary dari buat_kegiatan()
-    skor_jenis : {jenis: list 24 skor per jam}
-    Hasil: (jadwal, tidak_muat)
-      jadwal     = list of dictionary, urut dari jam mulai paling pagi
-      tidak_muat = list kegiatan yang tidak mendapat tempat
-    """
     terisi = tandai_slot(mulai_menit, selesai_menit)
 
     slot_jenis = {}    
@@ -144,11 +128,6 @@ def susun_jadwal(kegiatan, skor_jenis, mulai_menit, selesai_menit):
 
 def rangkai_hasil(pengguna, lokasi, tanggal, per_jam, harian, mulai_menit, selesai_menit, kegiatan,
                   sekarang_menit=None):
-    """Gabungkan semuanya menjadi satu dictionary hasil (bisa langsung disimpan ke JSON).
-
-    sekarang_menit: jika tanggal = hari ini, jam yang sudah lewat tidak dipakai.
-    Ringkasan cuaca masih None (dibuat di Tahap 3).
-    """
     if selesai_menit - mulai_menit < MENIT_SLOT:
         raise ValueError("Jam selesai harus lebih lambat dari jam mulai.")
     catatan = []
