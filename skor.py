@@ -1,14 +1,14 @@
 import math
 
-jenis = ["Luar ruangan", "Dalam ruangan"]
+JENIS = ["Luar ruangan", "Dalam ruangan"]
 
-bobot_jenis = {
+BOBOT_JENIS = {
     "Luar ruangan" : {"hujan" : 40, "suhu_nyaman" : 15, "uv_rendah" : 15, "pm25"  : 10, "angin_pelan" : 5, "terang" : 15},
 }
 
-batas_hujan = 70
+BATAS_HUJAN = 70
 
-kolom = {
+KOLOM = {
     "hujan" : "hujan",
     "uv_rendah" : "uv",
     "angin_pelan" : "angin",
@@ -17,11 +17,11 @@ kolom = {
     "terang" : "siang",
 }
 
-def batas(nilai):
+def batasi(nilai):
     return max(0.0, min(100.0, nilai))
 
 def linear(v, buruk, bagus):
-    return batas((v - buruk) / (bagus - buruk) * 100)
+    return batasi((v - buruk) / (bagus - buruk) * 100)
 
 def rentang(v, buruk_bawah, bagus_bawah, bagus_atas, buruk_atas):
     if v < bagus_bawah:
@@ -30,9 +30,9 @@ def rentang(v, buruk_bawah, bagus_bawah, bagus_atas, buruk_atas):
         return linear(v, buruk_atas, bagus_atas)
     return 100.0
 
-def faktor(nama, v):
+def nilai_faktor(nama, v):
     if nama == "hujan":
-        return batas(100 - v)
+        return batasi(100 - v)
     elif nama == "uv_rendah":
         return linear(v, 11, 2)
     elif nama == "angin_pelan":
@@ -57,22 +57,22 @@ def hitung_skor(per_jam, bobot):
         total = 0.0
         bobot_dipakai = 0.0
         for nama_faktor, b in bobot.items():
-            nilai = baris.get(kolom[nama_faktor])
+            nilai = baris.get(KOLOM[nama_faktor])
             if kosong(nilai):
                 continue
-            total += b * faktor(nama_faktor, nilai)
+            total += b * nilai_faktor(nama_faktor, nilai)
             bobot_dipakai += b
         if bobot_dipakai > 0:
             skor = total / bobot_dipakai
         else:
             skor = 0.0
-        if not kosong(baris.get("hujan")) and baris["hujan"] >= batas_hujan:
+        if not kosong(baris.get("hujan")) and baris["hujan"] >= BATAS_HUJAN:
             skor = min(skor, 30.0)
         hasil.append(round(skor, 1))
     return hasil
 
-def skor_semua_kegiatan(per_jam):
-    luar_ruangan = hitung_skor(per_jam, bobot_jenis["Luar ruangan"])
+def skor_semua_jenis(per_jam):
+    luar_ruangan = hitung_skor(per_jam, BOBOT_JENIS["Luar ruangan"])
     dalam_ruangan = []
     for d in luar_ruangan:
         dalam_ruangan.append(round(100 - d, 1))
