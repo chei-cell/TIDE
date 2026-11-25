@@ -2,6 +2,7 @@ import requests
 
 URL_KOTA = "https://geocoding-api.open-meteo.com/v1/search"
 URL_CUACA = "https://api.open-meteo.com/v1/forecast"
+URL_UDARA = "https://air-quality-api.open-meteo.com/v1/air-quality"
 
 KODE_CUACA = {
     0: "Cerah", 1: "Cerah berawan", 2: "Berawan sebagian", 3: "Mendung",
@@ -66,15 +67,41 @@ def olah_per_jam(jam, pm25) :
         })
     return per_jam
 
+def ambil_p25(params) : 
+    pm25 = {}
+    try : 
+        params_udara = dict(params)
+        params_udara["hourly"] = "pm2_5"
+        udara = minta_data(URL_UDARA, params_udara)
+        waktu_list = udara["hourly"]["time"]
+        nilai_list = udara["hourly"]["pm2_5"]
+        for i in range(len(waktu_list)):
+            pm25[waktu_list[i]] = nilai_list[i]
+    except (ValueError, KeyError, TypeError):
+        pm25 = {}
+    return pm25
+
+
 def ambil_cuaca (lat, lon, tanggal) : 
     iso = tanggal.isoformat()
-    params = {"latitude" : lat, "longitude":lon, "timezone":"auto", "start_date":iso, "end_date" : iso,
-              "end_date" : iso, "hourly" : ("temperature_2m,apparent_temperature,relative_humidity_2m,precipitation_probability,"
-                         "precipitation,weather_code,cloud_cover,wind_speed_10m,uv_index,is_day")}
-    cuaca = minta_data(URL_CUACA, params)
-    per_jam = olah_per_jam(cuaca["hourly"], {})
+    params = {"latitude" : lat, "longitude":lon, "timezone":"auto", "start_date":iso, "end_date" : iso}
+    params_cuaca = dict(params)
+    params_cuaca["hourly"] = ("temperature_2m,apparent_temperature,relative_humidity_2m,precipitation_probability," "precipitation,weather_code,cloud_cover,wind_speed_10m,uv_index,is_day")
+    params_cuaca["daily"] = "sunrise,sunset"
+    cuaca = minta_data(URL_CUACA, params_cuaca)
+    jam = cuaca.get("hourly")
+    
+    if not jam or "time" not in jam or len(jam["time"]) < 24 : 
+        raise ValueError ("Data cuaca untuk tanggal sekian belum tersedia")
+    per_jam = olah_per_jam(jam, ambil_p25(params))
     harian = {"matahari_terbit": None, "matahari_terbenam": None}
+    try:
+        harian["matahari_terbit"] = cuaca["daily"]["sunrise"][0][11:16]
+        harian["matahari_terbenam"] = cuaca["daily"]["sunset"][0][11:16]
+    except (KeyError, IndexError, TypeError):
+        pass
     return per_jam, harian
+                     
 
 def ambil_data(kota, tanggal, cache) : 
     lokasi = cari_lokasi(kota)
