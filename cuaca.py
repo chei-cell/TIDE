@@ -104,7 +104,7 @@ def ambil_cuaca (lat, lon, tanggal) :
                      
 
 def ambil_data(kota, tanggal, cache) :
-    kunci = kota.strip().lower() + "|" + tanggal.isformat()
+    kunci = kota.strip().lower() + "|" + tanggal.isoformat()
     if kunci not in cache : 
         lokasi = cari_lokasi(kota)
         per_jam, harian = ambil_cuaca(lokasi["lat"], lokasi["lon"], tanggal)

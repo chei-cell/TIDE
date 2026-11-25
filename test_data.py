@@ -36,6 +36,52 @@ def test_login_register():
     harus_gagal(akun.login, "Tidak Ada", "abcd", path)
     assert akun.muat_users(path + ".tidak_ada") == {}
 
+def test_ambil_cuaca_lengkap():
+    def palsu(url, params) : 
+        if url == cuaca.URL_UDARA : 
+            return {"hourly": {"time": json_cuaca_palsu()["hourly"]["time"], "pm2_5": [20.5] * 24}}
+        return json_cuaca_palsu()
+    asli = cuaca.minta_data
+    cuaca.minta_data = palsu
+    try : 
+        per_jam, harian = cuaca.ambil_cuaca(-7.8, 110.4, date(2026, 11, 25))
+    finally:
+        cuaca.minta_data = asli
+    assert len(per_jam) == 24 and per_jam[10]["pm25"] == 20.5
+    assert harian == {"matahari_terbit": "05:21", "matahari_terbenam": "17:48"}
+
+def test_minta_data_gagal():
+    import requests
+
+    def putus(*argumen, **opsi):
+        raise requests.ConnectionError("internet mati")
+
+    asli = requests.get
+    requests.get = putus
+    try:
+        harus_gagal(cuaca.minta_data, cuaca.URL_CUACA, {})
+    finally:
+        requests.get = asli
+
+
+def test_cache_dictionary():
+    panggilan = []
+
+    def lokasi_palsu(kota):
+        panggilan.append(kota)
+        return {"nama": kota, "label": kota, "lat": 1.0, "lon": 2.0}
+
+    asli_lokasi, asli_cuaca = cuaca.cari_lokasi, cuaca.ambil_cuaca
+    cuaca.cari_lokasi = lokasi_palsu
+    cuaca.ambil_cuaca = lambda lat, lon, tanggal: ([], {})
+    try:
+        cache = {}
+        cuaca.ambil_data("Yogyakarta", date(2026, 11, 25), cache)
+        cuaca.ambil_data("yogyakarta ", date(2026, 11, 25), cache)
+        cuaca.ambil_data("Yogyakarta", date(2026, 11, 26), cache)
+    finally:
+        cuaca.cari_lokasi, cuaca.ambil_cuaca = asli_lokasi, asli_cuaca
+    assert len(panggilan) == 2 and list(cache.keys()) == ["yogyakarta|2026-11-25", "yogyakarta|2026-11-26"]
 
 if __name__ == "__main__":
     print("Selesai. Gagal:", jalankan_tes(globals()))
