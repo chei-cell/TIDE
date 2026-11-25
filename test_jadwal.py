@@ -61,5 +61,28 @@ def test_rangkai_hasil_dasar():
     assert hasil["jam_mulai"] == "06:00" and hasil["jadwal"][0]["nama"] == "Lari"
     harus_gagal(rangkai_hasil, "A", LOKASI, date(2026, 11, 25), cuaca_contoh(), HARIAN, 600, 600, kegiatan)
 
+
+def test_quick_sort():
+    from algoritma import quick_sort
+    data = [{"v": v} for v in [5, 3, 9, 3, 1, 9, 0, 7]]
+    assert [d["v"] for d in quick_sort(data, "v")] == [9, 9, 7, 5, 3, 3, 1, 0]
+    assert [d["v"] for d in quick_sort(data, "v", menaik=True)] == [0, 1, 3, 3, 5, 7, 9, 9]
+    assert quick_sort([], "v") == []
+    assert [d["v"] for d in data] == [5, 3, 9, 3, 1, 9, 0, 7]   # list asli tidak berubah
+
+
+def test_cari_rentang_kosong():
+    from algoritma import cari_indeks, cari_rentang_kosong_terbaik
+    skor = [10, 50, 90, 90, 40, 80, 80, 80]
+    kosong = [False] * 8
+    assert cari_rentang_kosong_terbaik(skor, kosong, 2) == {"awal": 2, "rata2": 90.0}
+    terisi = [False, False, True, False, False, False, False, False]
+    assert cari_rentang_kosong_terbaik(skor, terisi, 2)["awal"] == 5
+    assert cari_rentang_kosong_terbaik(skor, [True] * 8, 1) is None
+    assert cari_rentang_kosong_terbaik(skor, kosong, 9) is None
+    assert cari_indeks([{"id": "a"}, {"id": "b"}], "id", "b") == 1
+    assert cari_indeks([], "id", "b") == -1
+
+
 if __name__ == "__main__":
     print("Selesai. Gagal:", jalankan_tes(globals()))
