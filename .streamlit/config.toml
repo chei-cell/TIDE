@@ -1,0 +1,11 @@
+[theme]
+base = "light"
+primaryColor = "#2B4C93"
+backgroundColor = "#FFFAF6"
+secondaryBackgroundColor = "#F9C5CB"
+textColor = "#2B4C93"
+baseFontSize = 17
+baseFontWeight = 600
+
+[browser]
+gatherUsageStats = false
